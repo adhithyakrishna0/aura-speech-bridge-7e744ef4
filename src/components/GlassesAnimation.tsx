@@ -1,12 +1,14 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { ArrowLeftRight, Pause, Play, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import VideoExporter from './VideoExporter';
 
 const GlassesAnimation: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [rotation, setRotation] = useState(0);
   const [autoRotate, setAutoRotate] = useState(true);
+  const animationContainerRef = useRef<HTMLDivElement>(null);
   
   // Animation loop for rotation
   useEffect(() => {
@@ -48,7 +50,10 @@ const GlassesAnimation: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center w-full">
-      <div className="relative w-full max-w-2xl aspect-video bg-black rounded-lg overflow-hidden shadow-2xl mb-4">
+      <div 
+        ref={animationContainerRef}
+        className="relative w-full max-w-2xl aspect-video bg-black rounded-lg overflow-hidden shadow-2xl mb-4"
+      >
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/80"></div>
         
         {/* Rotating Platform */}
@@ -96,8 +101,15 @@ const GlassesAnimation: React.FC = () => {
         </div>
       </div>
       
+      {/* Video Export Button */}
+      <VideoExporter 
+        targetRef={animationContainerRef} 
+        duration={20} 
+        fileName="AuraSpeech-Bridge-Animation"
+      />
+      
       {/* Controls */}
-      <div className="flex items-center justify-center space-x-4">
+      <div className="flex items-center justify-center space-x-4 mt-2">
         <Button 
           variant="outline" 
           size="icon"
