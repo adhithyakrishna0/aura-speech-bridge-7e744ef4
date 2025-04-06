@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
@@ -7,9 +8,15 @@ interface VideoExporterProps {
   targetRef: React.RefObject<HTMLDivElement>;
   duration: number;
   fileName?: string;
+  onStartRecording?: () => void;
 }
 
-const VideoExporter = ({ targetRef, duration, fileName = 'glasses-animation' }: VideoExporterProps) => {
+const VideoExporter = ({ 
+  targetRef, 
+  duration, 
+  fileName = 'glasses-animation',
+  onStartRecording
+}: VideoExporterProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const [progress, setProgress] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -22,17 +29,21 @@ const VideoExporter = ({ targetRef, duration, fileName = 'glasses-animation' }: 
     }
 
     try {
+      // Call the onStartRecording callback to prepare the animation
+      if (onStartRecording) {
+        onStartRecording();
+      }
+
       setIsRecording(true);
       setProgress(0);
       chunksRef.current = [];
 
-      const stream = targetRef.current.querySelector('canvas')?.captureStream() || 
-                      await navigator.mediaDevices.getDisplayMedia({
-                        video: { 
-                          displaySurface: "browser"
-                        },
-                        audio: false
-                      });
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { 
+          displaySurface: "browser"
+        },
+        audio: false
+      });
       
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: 'video/webm;codecs=vp9'
