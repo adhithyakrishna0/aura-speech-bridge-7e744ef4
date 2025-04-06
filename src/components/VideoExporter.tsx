@@ -1,8 +1,7 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 interface VideoExporterProps {
   targetRef: React.RefObject<HTMLDivElement>;
@@ -30,7 +29,6 @@ const VideoExporter = ({ targetRef, duration, fileName = 'glasses-animation' }: 
       const stream = targetRef.current.querySelector('canvas')?.captureStream() || 
                       await navigator.mediaDevices.getDisplayMedia({
                         video: { 
-                          cursor: "never",
                           displaySurface: "browser"
                         },
                         audio: false
