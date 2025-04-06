@@ -1,36 +1,10 @@
+
+/* Only keeping essential styles and removing unused ones */
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
 }
 
 .card {
@@ -39,4 +13,25 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Animation keyframes */
+@keyframes rotate3d {
+  from {
+    transform: rotate3d(0, 1, 0, 0deg);
+  }
+  to {
+    transform: rotate3d(0, 1, 0, 360deg);
+  }
+}
+
+.rotate-animation {
+  animation: rotate3d 20s linear infinite;
+  transform-style: preserve-3d;
+}
+
+.glasses-3d {
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
 }

@@ -5,12 +5,14 @@ import GlassesDisplay from '@/components/GlassesDisplay';
 import ModeSelector from '@/components/ModeSelector';
 import SpeechInterface from '@/components/SpeechInterface';
 import ProgressDashboard from '@/components/ProgressDashboard';
+import GlassesAnimation from '@/components/GlassesAnimation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Glasses, Info } from 'lucide-react';
+import { Brain, Glasses, Info, Video } from 'lucide-react';
 
 const Index = () => {
   const [activeMode, setActiveMode] = useState('assist');
   const [displayText, setDisplayText] = useState('Hello, how can I assist you today?');
+  const [showAnimation, setShowAnimation] = useState(false);
 
   const handleModeChange = (mode: string) => {
     setActiveMode(mode);
@@ -45,34 +47,67 @@ const Index = () => {
             </p>
           </div>
           
-          <GlassesDisplay text={displayText} mode={activeMode} />
+          {showAnimation ? (
+            <GlassesAnimation />
+          ) : (
+            <GlassesDisplay text={displayText} mode={activeMode} />
+          )}
+          
+          <div className="flex justify-center mt-4">
+            <button 
+              onClick={() => setShowAnimation(!showAnimation)}
+              className="flex items-center space-x-2 text-sm text-primary hover:text-primary/80 transition-colors"
+            >
+              {showAnimation ? (
+                <>
+                  <Glasses size={16} />
+                  <span>Show Interface Demo</span>
+                </>
+              ) : (
+                <>
+                  <Video size={16} />
+                  <span>Show 3D Animation</span>
+                </>
+              )}
+            </button>
+          </div>
         </section>
 
-        <section className="mb-10">
-          <h2 className="text-xl font-semibold mb-4">Select Communication Mode</h2>
-          <ModeSelector activeMode={activeMode} onModeChange={handleModeChange} />
-        </section>
-        
-        <section className="mb-10">
-          <div className="flex items-center mb-4">
-            <h2 className="text-xl font-semibold">Speech Interface</h2>
-            <div className="ml-auto flex space-x-2">
-              <div className="flex items-center text-xs text-muted-foreground">
-                <div className="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
-                <span>Microphone Active</span>
+        {!showAnimation && (
+          <>
+            <section className="mb-10">
+              <h2 className="text-xl font-semibold mb-4">Select Communication Mode</h2>
+              <ModeSelector activeMode={activeMode} onModeChange={handleModeChange} />
+            </section>
+            
+            <section className="mb-10">
+              <div className="flex items-center mb-4">
+                <h2 className="text-xl font-semibold">Speech Interface</h2>
+                <div className="ml-auto flex space-x-2">
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <div className="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
+                    <span>Microphone Active</span>
+                  </div>
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <div className="w-2 h-2 rounded-full bg-blue-500 mr-1"></div>
+                    <span>AI Connected</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center text-xs text-muted-foreground">
-                <div className="w-2 h-2 rounded-full bg-blue-500 mr-1"></div>
-                <span>AI Connected</span>
-              </div>
-            </div>
-          </div>
-          <SpeechInterface onSpeechChange={setDisplayText} activeMode={activeMode} />
-        </section>
+              <SpeechInterface onSpeechChange={setDisplayText} activeMode={activeMode} />
+            </section>
+          </>
+        )}
         
         <section>
-          <Tabs defaultValue="dashboard">
+          <Tabs defaultValue={showAnimation ? "animation" : "dashboard"}>
             <TabsList className="mb-4">
+              {showAnimation && (
+                <TabsTrigger value="animation" className="flex items-center">
+                  <Video size={16} className="mr-2" />
+                  Animation Info
+                </TabsTrigger>
+              )}
               <TabsTrigger value="dashboard" className="flex items-center">
                 <Brain size={16} className="mr-2" />
                 Progress Dashboard
@@ -82,9 +117,69 @@ const Index = () => {
                 About The Project
               </TabsTrigger>
             </TabsList>
+            
+            {showAnimation && (
+              <TabsContent value="animation">
+                <div className="bg-card shadow-sm border rounded-lg p-6">
+                  <h2 className="text-xl font-semibold mb-4">About This Animation</h2>
+                  <p className="text-muted-foreground mb-4">
+                    This 20-second animation showcases the AuraSpeech Bridge smart glasses with a revolving camera angle, 
+                    highlighting the sleek design and key features of our communication assistance technology.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div>
+                      <h3 className="font-medium mb-2">Animation Features</h3>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-start">
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 mr-2"></div>
+                          <span>360° revolving view of the product</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 mr-2"></div>
+                          <span>20-second complete rotation cycle</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 mr-2"></div>
+                          <span>Interactive controls for manual adjustment</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 mr-2"></div>
+                          <span>Progress tracking along the animation timeline</span>
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium mb-2">Product Highlights</h3>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-start">
+                          <div className="w-1.5 h-1.5 rounded-full bg-secondary mt-1.5 mr-2"></div>
+                          <span>Sleek, minimalist frame design</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="w-1.5 h-1.5 rounded-full bg-secondary mt-1.5 mr-2"></div>
+                          <span>Integrated transparent OLED display</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="w-1.5 h-1.5 rounded-full bg-secondary mt-1.5 mr-2"></div>
+                          <span>EEG sensor for brainwave detection</span>
+                        </li>
+                        <li className="flex items-start">
+                          <div className="w-1.5 h-1.5 rounded-full bg-secondary mt-1.5 mr-2"></div>
+                          <span>Lightweight yet durable construction</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            )}
+            
             <TabsContent value="dashboard">
               <ProgressDashboard />
             </TabsContent>
+            
             <TabsContent value="about">
               <div className="bg-card shadow-sm border rounded-lg p-6">
                 <div className="flex items-start">
