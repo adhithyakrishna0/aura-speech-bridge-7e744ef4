@@ -1,14 +1,19 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-import { ArrowLeftRight, Pause, Play, RotateCcw } from 'lucide-react';
+import { ArrowLeftRight, Download, Loader2, Pause, Play, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import VideoExporter from './VideoExporter';
+import { toast } from 'sonner';
 
 const GlassesAnimation: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [rotation, setRotation] = useState(0);
   const [autoRotate, setAutoRotate] = useState(true);
+  const [isRecording, setIsRecording] = useState(false);
+  const [progress, setProgress] = useState(0);
+  
   const animationContainerRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
   
   // Animation loop for rotation
   useEffect(() => {
@@ -47,6 +52,101 @@ const GlassesAnimation: React.FC = () => {
       return "/lovable-uploads/4ff6eac8-be19-4d1e-9344-86f0f277de4b.png";
     }
   };
+
+  // Video export functionality
+  const startRecording = async () => {
+    if (!animationContainerRef.current) {
+      toast.error("Nothing to record. Please ensure the animation is visible.");
+      return;
+    }
+
+    try {
+      setIsRecording(true);
+      setProgress(0);
+      chunksRef.current = [];
+
+      // Reset rotation to 0 for a complete animation cycle
+      setRotation(0);
+      
+      // Force auto-rotate on during recording
+      const wasAutoRotating = autoRotate;
+      const wasPlaying = isPlaying;
+      setAutoRotate(true);
+      setIsPlaying(true);
+
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { 
+          displaySurface: "browser"
+        },
+        audio: false
+      });
+      
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp9'
+      });
+      
+      mediaRecorderRef.current = mediaRecorder;
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: 'video/mp4' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `AuraSpeech-Bridge-Animation.mp4`;
+        a.click();
+        
+        // Clean up
+        URL.revokeObjectURL(url);
+        stream.getTracks().forEach(track => track.stop());
+        
+        setIsRecording(false);
+        setProgress(0);
+        // Restore previous animation states
+        setAutoRotate(wasAutoRotating);
+        setIsPlaying(wasPlaying);
+        
+        toast.success("Video downloaded successfully!");
+      };
+      
+      mediaRecorder.start();
+      
+      // Duration is 20 seconds for a full rotation
+      const duration = 20;
+      const interval = 100; // Update progress every 100ms
+      let elapsed = 0;
+      
+      const progressTimer = setInterval(() => {
+        elapsed += interval;
+        const newProgress = Math.min((elapsed / (duration * 1000)) * 100, 100);
+        setProgress(newProgress);
+        
+        if (elapsed >= duration * 1000) {
+          clearInterval(progressTimer);
+          mediaRecorder.stop();
+        }
+      }, interval);
+      
+    } catch (error) {
+      console.error("Error recording video:", error);
+      setIsRecording(false);
+      toast.error("Failed to start recording. Please try again or use screen recording software.");
+    }
+  };
+  
+  // Clean up if component unmounts during recording
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
+    };
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center w-full">
@@ -102,11 +202,40 @@ const GlassesAnimation: React.FC = () => {
       </div>
       
       {/* Video Export Button */}
-      <VideoExporter 
-        targetRef={animationContainerRef} 
-        duration={20} 
-        fileName="AuraSpeech-Bridge-Animation"
-      />
+      <div className="my-4">
+        <Button 
+          onClick={startRecording} 
+          disabled={isRecording}
+          className="flex items-center gap-2"
+        >
+          {isRecording ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Recording ({Math.round(progress)}%)
+            </>
+          ) : (
+            <>
+              <Download className="h-4 w-4" />
+              Export as Video
+            </>
+          )}
+        </Button>
+        
+        {isRecording && (
+          <div className="w-full bg-secondary/30 h-2 mt-2 rounded-full overflow-hidden">
+            <div 
+              className="bg-primary h-full transition-all duration-300 ease-linear"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+        )}
+        
+        <p className="text-xs text-muted-foreground mt-2">
+          {isRecording 
+            ? "Recording in progress. Please don't navigate away from this page."
+            : "This will create a video file of the current animation."}
+        </p>
+      </div>
       
       {/* Controls */}
       <div className="flex items-center justify-center space-x-4 mt-2">
@@ -114,6 +243,7 @@ const GlassesAnimation: React.FC = () => {
           variant="outline" 
           size="icon"
           onClick={() => setIsPlaying(!isPlaying)}
+          disabled={isRecording}
         >
           {isPlaying ? <Pause size={16} /> : <Play size={16} />}
         </Button>
@@ -122,6 +252,7 @@ const GlassesAnimation: React.FC = () => {
           variant="outline" 
           size="icon"
           onClick={() => setRotation(0)}
+          disabled={isRecording}
         >
           <RotateCcw size={16} />
         </Button>
@@ -131,6 +262,7 @@ const GlassesAnimation: React.FC = () => {
           size="sm"
           onClick={() => setAutoRotate(!autoRotate)}
           className="flex items-center space-x-1"
+          disabled={isRecording}
         >
           <ArrowLeftRight size={16} />
           <span>Auto-Rotate</span>
